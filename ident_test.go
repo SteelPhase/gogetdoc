@@ -201,6 +201,33 @@ func TestIssue20(t *testing.T) {
 	}
 }
 
+func TestIssue44(t *testing.T) {
+	cleanup := setGopath(filepath.Join(".", "testdata", "package"), t)
+	defer cleanup()
+	filename := filepath.Join(".", "testdata", "package", "src", "somepkg", "issue44.go")
+
+	tests := []struct {
+		desc   string
+		want   string
+		offset int
+	}{
+		{"interface method", "func (Thing).Do(s somepkg.Stuff) Stuff", 87},
+		{"struct method", "func (ti *ThingImplemented) Do(s Stuff) Stuff", 271},
+	}
+	for _, test := range tests {
+		t.Run(test.desc, func(t *testing.T) {
+			doc, err := Run(filename, test.offset, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if doc.Decl != test.want {
+				t.Errorf("want %s, got %s", test.want, doc.Decl)
+			}
+		})
+	}
+}
+
 func TestVendoredIdent(t *testing.T) {
 	cleanup := setGopath(filepath.Join(".", "testdata", "withvendor"), t)
 	defer cleanup()
